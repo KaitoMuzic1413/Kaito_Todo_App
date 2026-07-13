@@ -1,53 +1,131 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useLayoutEffect, useCallback, useMemo } from 'react'
 import {
   Pagination,
   PaginationContent,
   PaginationItem,
-  PaginationLink,
-  PaginationEllipsis,
 } from "@/components/ui/pagination"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, ChevronsUpDown } from "lucide-react"
 import { toast } from "sonner"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from "@/components/ui/popover"
+import { options } from "@/lib/data" 
 
-const TaskListPagination = ({ handleNext, handlePrev, handlePageChange, page, totalPages }) => {
+const TaskListPagination = ({ 
+  handleNext, 
+  handlePrev, 
+  handlePageChange, 
+  page = 1,        
+  totalPages = 1,  
+  dateQuery,      
+  setDateQuery    
+}) => {
   const [inputPage, setInputPage] = useState("");
+  const [openFilter, setOpenFilter] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  
+  const containerRef = useRef(null);
+  const buttonRefs = useRef({});
+  const [highlightStyle, setHighlightStyle] = useState({ left: 0, width: 0, opacity: 0 });
 
-  // Nếu không có trang nào hoặc chỉ có 1 trang, ẩn cụm nút đi nhưng giữ chỗ để giữ layout cho DateTimeFilter
+  const getPaginationRangeFor = (currentPage, last) => {
+    const safePage = currentPage || 1;
+    if (last <= 7) {
+      return Array.from({ length: last }, (_, i) => i + 1);
+    }
+
+    const rangeWithDots = [];
+    const leftRange = [1, 2, 3];
+    const rightRange = [last - 2, last - 1, last];
+
+    const siblingLeft = Math.max(safePage - 1, 1);
+    const siblingRight = Math.min(safePage + 1, last);
+
+    const showLeftDots = siblingLeft > 4;
+    const showRightDots = siblingRight < last - 3;
+
+    if (!showLeftDots && showRightDots) {
+      const extraLeft = [];
+      for (let i = 4; i <= Math.max(5, siblingRight); i++) {
+        extraLeft.push(i);
+      }
+      rangeWithDots.push(...leftRange, ...extraLeft, '...', ...rightRange);
+    } else if (showLeftDots && !showRightDots) {
+      const extraRight = [];
+      for (let i = Math.min(last - 4, siblingLeft); i <= last - 3; i++) {
+        extraRight.push(i);
+      }
+      rangeWithDots.push(...leftRange, '...', ...extraRight, ...rightRange);
+    } else if (showLeftDots && showRightDots) {
+      rangeWithDots.push(
+        ...leftRange,
+        '...',
+        siblingLeft,
+        safePage,
+        siblingRight,
+        '...',
+        ...rightRange
+      );
+    }
+
+    return Array.from(new Set(rangeWithDots));
+  };
+
+  const currentSafePage = page || 1;
+  const paginationRange = totalPages > 1 ? getPaginationRangeFor(currentSafePage, totalPages) : [];
+  const maxSlotCount = 9; 
+
+  const paddedRange = useMemo(() => {
+    const padded = [...paginationRange];
+    while (padded.length < maxSlotCount) {
+      padded.push({ empty: true, id: `empty-${padded.length}` });
+    }
+    return padded;
+  }, [paginationRange, maxSlotCount]);
+
+  const filteredOptions = useMemo(() => {
+    return (options || []).filter((option) =>
+      option.label.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm]);
+
+  const updateHighlight = useCallback(() => {
+    const container = containerRef.current;
+    const activeBtn = buttonRefs.current[currentSafePage];
+
+    if (!container || !activeBtn) {
+      setHighlightStyle((prev) => (prev.opacity === 0 ? prev : { ...prev, opacity: 0 }));
+      return;
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const btnRect = activeBtn.getBoundingClientRect();
+
+    setHighlightStyle({
+      left: btnRect.left - containerRect.left,
+      width: btnRect.width,
+      opacity: 1,
+    });
+  }, [currentSafePage]);
+
+  useLayoutEffect(() => {
+    if (totalPages <= 1) return;
+    updateHighlight();
+  }, [updateHighlight, paddedRange.length, totalPages, currentSafePage]);
+
+  useLayoutEffect(() => {
+    if (totalPages <= 1) return;
+    const handleResize = () => updateHighlight();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [updateHighlight, totalPages]);
+
   if (totalPages <= 1) {
     return <div className="flex-1"></div>;
   }
-
-  // Thuật toán tạo danh sách số trang thông minh dạng [1, 2, 3, '...', 14, 15, 16]
-  const getPaginationRange = () => {
-    const current = page;
-    const last = totalPages;
-    const delta = 1;
-    
-    const range = [];
-    const rangeWithDots = [];
-    let l;
-
-    for (let i = 1; i <= last; i++) {
-      if (i === 1 || i === last || (i >= current - delta && i <= current + delta)) {
-        range.push(i);
-      }
-    }
-
-    for (let i of range) {
-      if (l) {
-        if (i - l === 2) {
-          rangeWithDots.push(l + 1);
-        } else if (i - l > 2) {
-          rangeWithDots.push('...');
-        }
-      }
-      rangeWithDots.push(i);
-      l = i;
-    }
-
-    return rangeWithDots;
-  };
 
   const handleGoToPageSubmit = (e) => {
     if (e.key === 'Enter') {
@@ -64,65 +142,80 @@ const TaskListPagination = ({ handleNext, handlePrev, handlePageChange, page, to
     }
   };
 
-  const paginationRange = getPaginationRange();
-
   return (
-    // items-start giữ mọi thứ dạt về lề trái
-    <div className="flex flex-col items-start gap-2.5 flex-1 mt-4">
-      
-      {/* 1. Cụm phân trang dạt hết sang bên trái */}
+    <div className="flex flex-col items-start gap-4 flex-1 mt-4 w-full">
+
+      {/* DÒNG 1: PHÂN TRANG */}
       <div className="w-full flex justify-start">
         <Pagination className="mx-0 w-auto">
-          <PaginationContent className="flex items-center gap-1">
+          <PaginationContent className="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-full backdrop-blur-sm border border-slate-200/40 relative">
             
-            {/* Nút Prev */}
             <PaginationItem>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handlePrev}
-                disabled={page === 1}
-                className="gap-1 pl-2.5 cursor-pointer disabled:pointer-events-none disabled:opacity-50 text-slate-600"
+                disabled={currentSafePage === 1}
+                className="h-8 px-3 text-xs font-bold gap-1 rounded-full cursor-pointer disabled:opacity-30 text-slate-600 hover:bg-white hover:text-purple-600 transition-all duration-200"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-3.5 w-3.5" />
                 <span>Prev</span>
               </Button>
             </PaginationItem>
 
-            {/* Duyệt mảng số trang */}
-            {paginationRange.map((item, index) => {
-              if (item === '...') {
+            <div ref={containerRef} className="flex items-center gap-1.5 relative">
+              <div
+                className="absolute top-0 h-8 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 shadow-md pointer-events-none"
+                style={{
+                  left: `${highlightStyle.left}px`,
+                  width: `${highlightStyle.width}px`,
+                  opacity: highlightStyle.opacity,
+                  transition: 'left 320ms cubic-bezier(0.34, 1.56, 0.64, 1), width 320ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 200ms ease',
+                  zIndex: 0,
+                }}
+              />
+
+              {paddedRange.map((item, index) => {
+                if (item && item.empty) {
+                  return <div key={`empty-${index}`} className="h-8 w-8 flex-shrink-0" aria-hidden="true" />;
+                }
+
+                if (item === '...') {
+                  return (
+                    <span key={`ellipsis-${index}`} className="h-8 w-8 flex-shrink-0 flex items-center justify-center text-slate-400 font-bold select-none text-xs relative z-10">
+                      ...
+                    </span>
+                  );
+                }
+
+                const isActive = currentSafePage === item;
+
                 return (
-                  <PaginationItem key={`ellipsis-${index}`}>
-                    <PaginationEllipsis className="text-slate-400" />
-                  </PaginationItem>
+                  <div key={`page-${item}`} className="relative h-8 w-8 flex-shrink-0 flex items-center justify-center">
+                    <button
+                      ref={(el) => { buttonRefs.current[item] = el; }}
+                      className={`relative h-8 w-8 text-xs flex items-center justify-center cursor-pointer font-bold select-none rounded-full border-0 bg-transparent z-10 transition-colors duration-200 ${
+                        isActive ? "text-white" : "text-slate-600 hover:bg-white/80 hover:text-purple-600"
+                      }`}
+                      onClick={() => handlePageChange(item)}
+                    >
+                      {item}
+                    </button>
+                  </div>
                 );
-              }
+              })}
+            </div>
 
-              return (
-                <PaginationItem key={`page-${item}`}>
-                  <PaginationLink
-                    className="cursor-pointer font-medium select-none"
-                    isActive={page === item}
-                    onClick={() => handlePageChange(item)}
-                  >
-                    {item}
-                  </PaginationLink>
-                </PaginationItem>
-              );
-            })}
-
-            {/* Nút Next */}
             <PaginationItem>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleNext}
-                disabled={page === totalPages}
-                className="gap-1 pr-2.5 cursor-pointer disabled:pointer-events-none disabled:opacity-50 text-slate-600"
+                disabled={currentSafePage === totalPages}
+                className="h-8 px-3 text-xs font-bold gap-1 rounded-full cursor-pointer disabled:opacity-30 text-slate-600 hover:bg-white hover:text-purple-600 transition-all duration-200"
               >
                 <span>Next</span>
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-3.5 w-3.5" />
               </Button>
             </PaginationItem>
 
@@ -130,19 +223,74 @@ const TaskListPagination = ({ handleNext, handlePrev, handlePageChange, page, to
         </Pagination>
       </div>
 
-      {/* 2. Cụm nhập trang nằm dòng dưới, dạt hẳn ra lề TRÁI đầu dòng luôn (đổi thành justify-start và thêm chút padding-left cho khớp số hiệu) */}
-      <div className="w-full flex justify-start items-center gap-2 text-xs text-slate-400 select-none pl-3">
-        <span>Go to page:</span>
-        <input
-          type="text"
-          value={inputPage}
-          onChange={(e) => setInputPage(e.target.value)}
-          onKeyDown={handleGoToPageSubmit}
-          placeholder={page.toString()}
-          className="w-10 h-6 text-center text-slate-700 font-medium bg-slate-50 border border-slate-300 rounded-md outline-none focus:border-primary transition-all text-xs"
-        />
-      </div>
+      {/* DÒNG 2: GO TO PAGE NẰM NGANG VỚI BỘ LỌC NGÀY THÁNG */}
+      <div className="w-full flex justify-between items-center select-none pl-1">
+        
+        {/* Bên trái: Chuyển trang nhanh */}
+        <div className="flex items-center gap-2.5 text-sm">
+          <span className="font-bold text-slate-700">Go to page:</span>
+          <input
+            type="text"
+            value={inputPage}
+            onChange={(e) => setInputPage(e.target.value)}
+            onKeyDown={handleGoToPageSubmit}
+            placeholder={currentSafePage.toString()} 
+            className="w-12 h-8 text-center font-bold bg-slate-50 border border-border/50 focus:border-primary/50 focus:ring-4 focus:ring-primary/20 rounded-full outline-none transition-all duration-200 text-xs px-2 shadow-sm"
+            style={{ color: '#334155' }}
+          />
+        </div>
 
+        {/* Bên phải: Nút kích hoạt bộ lọc ngày giờ */}
+        <Popover open={openFilter} onOpenChange={setOpenFilter}>
+          <PopoverTrigger className="w-[140px] h-8 flex justify-between items-center font-bold text-slate-700 bg-white border border-slate-300 rounded-full shadow-sm text-xs px-3 cursor-pointer outline-none hover:bg-slate-50 focus:border-purple-500/50 transition-colors">
+            <span className="truncate">
+              {/* 🎯 ĐÃ SỬA: Ưu tiên tìm nhãn theo dateQuery hiện tại, nếu không có thì tìm nhãn 'all', cuối cùng fallback về chữ "All" */}
+              {dateQuery
+                ? (options?.find((option) => option.value === dateQuery)?.label)
+                : (options?.find((option) => option.value === 'all')?.label || "All")}
+            </span>
+            <ChevronsUpDown className="ml-1 h-3.5 w-3.5 shrink-0 opacity-50" />
+          </PopoverTrigger>
+          
+          <PopoverContent className="w-[160px] p-2 bg-white border border-slate-200 rounded-lg shadow-md" align="end">
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full h-8 px-2.5 py-1 text-xs bg-slate-50 border border-slate-200 rounded-md outline-none focus:border-slate-400 mb-1.5"
+            />
+            
+            <div className="max-h-[165px] overflow-y-auto space-y-0.5">
+              {filteredOptions.length === 0 ? (
+                <p className="text-xs text-slate-400 text-center py-2">No items found.</p>
+              ) : (
+                filteredOptions.map((option) => (
+                  <div
+                    key={option.value}
+                    onClick={() => {
+                      if (setDateQuery) setDateQuery(option.value)
+                      setOpenFilter(false)
+                      setSearchTerm("") 
+                    }}
+                    className={`w-full text-left px-2.5 py-1.5 text-xs font-bold rounded-md cursor-pointer flex items-center justify-between transition-colors
+                      ${dateQuery === option.value 
+                        ? 'bg-purple-50 text-purple-700' 
+                        : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                  >
+                    <span className="truncate">{option.label}</span>
+                    {dateQuery === option.value && (
+                      <span className="text-purple-600 text-[10px] font-bold">✓</span>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
+
+      </div>
     </div>
   )
 }
