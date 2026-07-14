@@ -16,10 +16,8 @@ const __dirname = path.resolve();
 
 // 🎯 ĐƯA ĐOẠN NÀY LÊN ĐẦU: CORS phải luôn là middleware được nạp đầu tiên để xử lý request từ port 5173
 app.use(cors({ 
-    origin: "http://localhost:5173", 
+    origin: true,
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Thêm OPTIONS để duyệt trước các lệnh POST/PUT/DELETE
-    allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 app.use(express.json());
@@ -44,7 +42,8 @@ if(process.env.NODE_ENV === 'production'){
 
 // Kết nối Database và chạy Server
 connectDB().then(() => {
-    app.listen(PORT, () => {
+    // Thay app.listen(PORT, ...) bằng:
+    app.listen(PORT, '0.0.0.0', () => {
         console.log(`Server is running on port ${PORT}`);
     });
 });

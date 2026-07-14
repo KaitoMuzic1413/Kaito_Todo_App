@@ -1,4 +1,4 @@
-import React, { useState, useRef, useLayoutEffect, useCallback, useMemo } from 'react'
+import React, { useState, useRef, useLayoutEffect, useCallback, useMemo, useEffect } from 'react'
 import {
   Pagination,
   PaginationContent,
@@ -23,6 +23,14 @@ const TaskListPagination = ({
   dateQuery,      
   setDateQuery    
 }) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
   const [inputPage, setInputPage] = useState("");
   const [openFilter, setOpenFilter] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -76,12 +84,43 @@ const TaskListPagination = ({
 
   const currentSafePage = page || 1;
   const paginationRange = totalPages > 1 ? getPaginationRangeFor(currentSafePage, totalPages) : [];
+  
+  // Đã sửa lỗi thừa dấu phẩy ở đây
+  const mobilePaginationRange = (() => {
+    if (!isMobile) return paginationRange;
+    if (totalPages <= 7) return paginationRange;
+    if (currentSafePage <= 4) {
+      return [1, 2, 3, 4, 5, "...", totalPages];
+    }
+    if (currentSafePage >= totalPages - 3) {
+      return [
+        1,
+        "...",
+        totalPages - 4,
+        totalPages - 3,
+        totalPages - 2,
+        totalPages - 1,
+        totalPages,
+      ];
+    }
+
+    return [
+      1,
+      "...",
+      currentSafePage - 1,
+      currentSafePage,
+      currentSafePage + 1,
+      "...",
+      totalPages,
+    ];
+  })();
+  
   const maxSlotCount = 9; 
 
-  const paddedRange = (() => {
+  const paddedRange = isMobile ? mobilePaginationRange : (() => {
     const padded = [...paginationRange];
     while (padded.length < maxSlotCount) {
-      padded.push({ empty: true, id: `empty-${padded.length}` });
+      padded.push({empty: true, id: `empty-${padded.length}`});
     }
     return padded;
   })();
@@ -144,26 +183,24 @@ const TaskListPagination = ({
 
   return (
     <div className="flex flex-col items-start gap-4 flex-1 mt-4 w-full">
-
-      {/* DÒNG 1: PHÂN TRANG */}
       <div className="w-full flex justify-start">
-        <Pagination className="mx-0 w-auto">
-          <PaginationContent className="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-full backdrop-blur-sm border border-slate-200/40 relative">
-            
+        <Pagination className="mx-auto w-full">
+          <PaginationContent className="flex flex-wrap md:flex-nowrap items-center gap-1.5 bg-white p-2 rounded-2xl md:rounded-full shadow-md transition-all duration-200 relative w-fit max-w-full">
             <PaginationItem>
               <Button
-                variant="ghost"
+                variant="default"
                 size="sm"
                 onClick={handlePrev}
                 disabled={currentSafePage === 1}
-                className="h-8 px-3 text-xs font-bold gap-1 rounded-full cursor-pointer disabled:opacity-30 text-slate-600 hover:bg-white hover:text-purple-600 transition-all duration-200"
+                // Đã sửa pointer-even-none -> pointer-events-none, text white -> text-white
+                className="h-12 px-6 gap-2 rounded-full !bg-gradient-to-r !from-purple-500 !to-indigo-600 hover:from-purple-600 hover:!to-indigo-800 text-white font-medium border-5 shadow-md transition-all duration-200 hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
                 <span>Prev</span>
               </Button>
             </PaginationItem>
 
-            <div ref={containerRef} className="flex items-center gap-1.5 relative">
+            <div ref={containerRef} className="flex flex-wrap md:flex-nowrap items-center gap-1.5 relative">
               <div
                 className="absolute top-0 h-8 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 shadow-md pointer-events-none"
                 style={{
@@ -177,7 +214,7 @@ const TaskListPagination = ({
 
               {paddedRange.map((item, index) => {
                 if (item && item.empty) {
-                  return <div key={`empty-${index}`} className="h-8 w-8 flex-shrink-0" aria-hidden="true" />;
+                  return <div key={`empty-${index}`} className="h-8 w-8 flex-shrink-0 hidden md:block" aria-hidden="true" />;
                 }
 
                 if (item === '...') {
@@ -208,25 +245,22 @@ const TaskListPagination = ({
 
             <PaginationItem>
               <Button
-                variant="ghost"
+                variant="default"
                 size="sm"
                 onClick={handleNext}
                 disabled={currentSafePage === totalPages}
-                className="h-8 px-3 text-xs font-bold gap-1 rounded-full cursor-pointer disabled:opacity-30 text-slate-600 hover:bg-white hover:text-purple-600 transition-all duration-200"
+                // Đã sửa pointer-even-none -> pointer-events-none, text white -> text-white
+                className="h-12 px-6 gap-2 rounded-full !bg-gradient-to-r !from-purple-500 !to-indigo-600 hover:from-purple-600 hover:!to-indigo-800 text-white font-medium border-5 shadow-md transition-all duration-200 hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
               >
                 <span>Next</span>
                 <ChevronRight className="h-3.5 w-3.5" />
               </Button>
             </PaginationItem>
-
           </PaginationContent>
         </Pagination>
       </div>
 
-      {/* DÒNG 2: GO TO PAGE NẰM NGANG VỚI BỘ LỌC NGÀY THÁNG */}
       <div className="w-full flex justify-between items-center select-none pl-1">
-        
-        {/* Bên trái: Chuyển trang nhanh */}
         <div className="flex items-center gap-2.5 text-sm">
           <span className="font-bold text-slate-700">Go to page:</span>
           <input
@@ -240,11 +274,9 @@ const TaskListPagination = ({
           />
         </div>
 
-        {/* Bên phải: Nút kích hoạt bộ lọc ngày giờ */}
         <Popover open={openFilter} onOpenChange={setOpenFilter}>
           <PopoverTrigger className="w-[140px] h-8 flex justify-between items-center font-bold text-slate-700 bg-white border border-slate-300 rounded-full shadow-sm text-xs px-3 cursor-pointer outline-none hover:bg-slate-50 focus:border-purple-500/50 transition-colors">
             <span className="truncate">
-              {/* 🎯 ĐÃ SỬA: Ưu tiên tìm nhãn theo dateQuery hiện tại, nếu không có thì tìm nhãn 'all', cuối cùng fallback về chữ "All" */}
               {dateQuery
                 ? (options?.find((option) => option.value === dateQuery)?.label)
                 : (options?.find((option) => option.value === 'all')?.label || "All")}
@@ -289,7 +321,6 @@ const TaskListPagination = ({
             </div>
           </PopoverContent>
         </Popover>
-
       </div>
     </div>
   )
