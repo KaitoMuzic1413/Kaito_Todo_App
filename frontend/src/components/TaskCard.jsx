@@ -28,7 +28,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
 
-const TaskCard = ({ task, index, handleTaskChanged }) => {
+const TaskCard = ({ task, handleTaskChanged }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [updateTaskTitle, setUpdateTaskTitle] = useState(task.title || "");
 

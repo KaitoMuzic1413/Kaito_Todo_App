@@ -157,14 +157,14 @@ const Login = () => {
               type="email" 
               placeholder="Email" 
               value={signInData.email}
-              onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })}
+              onChange={(e) => setSignInData({ ...signInData, email: e.target.value })}
               required
             />
             <input 
               type="password" 
               placeholder="Password" 
               value={signInData.password}
-              onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
+              onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
               required
             />
             <a href="#">Forget Your Password?</a>

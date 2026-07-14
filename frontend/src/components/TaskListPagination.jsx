@@ -78,13 +78,13 @@ const TaskListPagination = ({
   const paginationRange = totalPages > 1 ? getPaginationRangeFor(currentSafePage, totalPages) : [];
   const maxSlotCount = 9; 
 
-  const paddedRange = useMemo(() => {
+  const paddedRange = (() => {
     const padded = [...paginationRange];
     while (padded.length < maxSlotCount) {
       padded.push({ empty: true, id: `empty-${padded.length}` });
     }
     return padded;
-  }, [paginationRange, maxSlotCount]);
+  })();
 
   const filteredOptions = useMemo(() => {
     return (options || []).filter((option) =>

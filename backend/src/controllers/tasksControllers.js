@@ -77,7 +77,7 @@ export const createTask = async (req, res) => {
 export const updateTask = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, status, completeAt } = req.body;
+        const { title, status, completedAt } = req.body;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ message: "Invalid ID format" });
@@ -85,7 +85,7 @@ export const updateTask = async (req, res) => {
 
         const updatedTask = await Task.findByIdAndUpdate(
             id,
-            { title, status, completeAt },
+            { title, status, completedAt },
             { new: true }
         );
 

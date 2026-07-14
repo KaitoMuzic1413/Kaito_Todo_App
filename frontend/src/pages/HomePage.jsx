@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"; 
+import React, { useState, useEffect, useCallback } from "react"; 
 import { toast } from "sonner"; 
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion"; // 🎯 NHẬP THÊM thư viện framer-motion
@@ -17,24 +17,24 @@ const HomePage = () => {
   const [dateQuery, setDateQuery] = useState('all'); 
   const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    setPage(1);
-    fetchTasks();
-  }, [dateQuery]);
-
-  useEffect(() => {
-    setPage(1);
-  }, [filter]);
-
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     try {
       const res = await api.get(`/tasks?filter=${dateQuery}`);
-      setTaskBuffer(res.data.tasks || []); 
+      setTaskBuffer(res.data.tasks || []);
     } catch (error) {
       console.error("Fetch tasks error:", error);
       toast.error("Fetch tasks error.");
     }
-  };
+  }, [dateQuery]);
+
+  useEffect(() => {
+    setPage(1);
+    fetchTasks();
+  }, [dateQuery, fetchTasks]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filter]);
   
   const handleTaskChanged = () => {
     fetchTasks();
@@ -48,7 +48,7 @@ const HomePage = () => {
 
   const handlePrev = () => {
     if(page > 1){
-      setPage((prev) => prev + 1); // Đã sửa logic nhảy trang lùi
+      setPage((prev) => prev - 1);
     }
   };
 

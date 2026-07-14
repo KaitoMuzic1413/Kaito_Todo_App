@@ -24,7 +24,7 @@
 .style-login-body {
     background-color: #c9d6ff;
     background-image: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), 
-                      url('background.avif');
+                      url('../assets/background.avif');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
