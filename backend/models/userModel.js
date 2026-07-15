@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'; // 👈 1. Đổi require thành import (và thêm dấu =)
+import mongoose from 'mongoose';
 
 const userSchema = mongoose.Schema({
     name: {
@@ -14,9 +14,13 @@ const userSchema = mongoose.Schema({
         type: String,
         required: [true, 'Please add a password']
     },
+    passwordSalt: {
+        type: String,
+        required: true,
+    },
 },
 {
     timestamps: true
 });
 
-export default mongoose.model('User', userSchema); // 👈 2. Đổi module.exports thành export default
+export default mongoose.model('User', userSchema);

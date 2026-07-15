@@ -1,9 +1,16 @@
 {
   "name": "todox",
   "version": "1.0.0",
+  "main": "index.js",
   "scripts": {
-    "install-all": "npm install --legacy-peer-deps && npm install --prefix backend --legacy-peer-deps && npm install --prefix frontend --legacy-peer-deps",
-    "build": "npm run install-all && npm run build --prefix frontend",
-    "start": "node backend/src/server.js"
+    "build": "npm install --legacy-peer-deps --include=dev --prefix backend && npm install --legacy-peer-deps --include=dev --prefix frontend && npm run build --prefix frontend",
+    "start": "NODE_ENV=production npm run start --prefix backend"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "framer-motion": "^12.42.2"
   }
 }

@@ -1,22 +1,41 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion"; // 🎯 NHẬP THÊM thư viện framer-motion
+import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
+import api from "@/lib/axios";
 import "./Login.css"; 
 import bgImage from "../assets/background.avif";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [isSignUpActive, setIsSignUpActive] = useState(false);
   const [signUpData, setSignUpData] = useState({ name: "", email: "", password: "" });
   const [signInData, setSignInData] = useState({ email: "", password: "" });
 
-  const handleSignUpSubmit = (e) => {
+  const handleSignUpSubmit = async (e) => {
     e.preventDefault();
-    console.log("Dữ liệu Đăng Ký:", signUpData);
+    try {
+      const response = await api.post("/users", signUpData);
+      toast.success(response.data.message || "Account created successfully");
+      localStorage.setItem("todoUser", JSON.stringify(response.data.user));
+      navigate("/");
+    } catch (error) {
+      const message = error.response?.data?.message || "Unable to create account";
+      toast.error(message);
+    }
   };
 
-  const handleSignInSubmit = (e) => {
+  const handleSignInSubmit = async (e) => {
     e.preventDefault();
-    console.log("Dữ liệu Đăng Nhập:", signInData);
+    try {
+      const response = await api.post("/users/login", signInData);
+      toast.success(response.data.message || "Login successful");
+      localStorage.setItem("todoUser", JSON.stringify(response.data.user));
+      navigate("/");
+    } catch (error) {
+      const message = error.response?.data?.message || "Unable to sign in";
+      toast.error(message);
+    }
   };
 
 // 🎯 HOẠT ẢNH CHO TRANG LOGIN: Phóng to từ tâm (giống như bung ra từ nút Login)

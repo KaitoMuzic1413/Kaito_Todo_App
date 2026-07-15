@@ -5,16 +5,23 @@ import { connectDB } from "./config/db.js";
 import dotenv from "dotenv";
 import cors from 'cors';
 import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
 const PORT = process.env.PORT || 5001;
 const app = express();
-const __dirname = path.resolve();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // --- Middlewares ---
-app.use(cors({ 
-    origin: ["https://kaito-todo-app.onrender.com", "http://localhost:5173"], 
+app.use(cors({
+    origin: [
+        "https://kaito-todo-app.onrender.com",
+        "https://www.kaito-todo-app.onrender.com",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
     credentials: true,
 }));
 
@@ -27,7 +34,7 @@ app.use("/api/users", userRoutes);
 
 // Phục vụ Frontend
 if(process.env.NODE_ENV === 'production'){
-    const frontendPath = path.join(__dirname, "frontend", "dist");
+    const frontendPath = path.join(__dirname, "..", "..", "frontend", "dist");
     app.use(express.static(frontendPath));
 
     app.get("*", (req, res) => {
