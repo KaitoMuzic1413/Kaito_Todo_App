@@ -18,11 +18,13 @@ const HomePage = () => {
   const [page, setPage] = useState(1);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTheme, setActiveTheme] = useState('light');
+  const [creationLimits, setCreationLimits] = useState(null);
 
   const fetchTasks = useCallback(async () => {
     try {
       const res = await api.get(`/tasks?filter=${dateQuery}`);
       setTaskBuffer(res.data.tasks || []);
+      setCreationLimits(res.data.creationLimits || null);
     } catch (error) {
       console.error("Fetch tasks error:", error);
       toast.error("Fetch tasks error.");
@@ -247,7 +249,7 @@ const HomePage = () => {
           </div>
 
           {/* Add Task */}
-          <AddTask handleNewTaskAdded={handleTaskChanged}/>
+          <AddTask handleNewTaskAdded={handleTaskChanged} limitStatus={creationLimits} />
 
           {/* StatsAndFilters */}
           <StatsAndFilters 
@@ -259,16 +261,18 @@ const HomePage = () => {
 
           {/* VÙNG CHỨA TASKLIST CỐ ĐỊNH CHIỀU CAO */}
           <div className="w-full flex flex-col">
-            <div style={{ minHeight: "480px", display: "flex", flexDirection: "column" }}> 
-              <TaskList 
-                filteredTasks={visibleTasks} 
-                filter={filter}
-                handleTaskChanged={handleTaskChanged}
-              />
+            <div className="min-h-[420px] flex flex-col justify-start">
+              <div className="min-h-[320px] flex flex-col">
+                <TaskList 
+                  filteredTasks={visibleTasks} 
+                  filter={filter}
+                  handleTaskChanged={handleTaskChanged}
+                />
+              </div>
             </div>
 
             {/* Phân trang bám đáy khối 480px */}
-            <div className="w-full pt-6 mt-auto border-t border-slate-100/50">
+            <div className="w-full pt-6 mt-4 border-t border-slate-100/50 min-h-[72px] flex items-center justify-center">
               <TaskListPagination 
                 handleNext={handleNext}
                 handlePrev={handlePrev}
@@ -283,10 +287,12 @@ const HomePage = () => {
           </div>
 
           {/* Footer */}
-          <Footer 
-            activeTasksCount={activeTasksCount}
-            completedTasksCount={completedTasksCount}
-          />
+          <div className="min-h-[72px] flex items-center justify-center">
+            <Footer 
+              activeTasksCount={activeTasksCount}
+              completedTasksCount={completedTasksCount}
+            />
+          </div>
           
         </div>
       </div>

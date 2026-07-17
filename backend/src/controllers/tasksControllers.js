@@ -1,6 +1,63 @@
 import Task from "../models/Task.js";
 import mongoose from "mongoose";
 
+const DAILY_TASK_LIMIT = 50;
+const MONTHLY_TASK_LIMIT = DAILY_TASK_LIMIT * 30;
+
+const getCreationLimitStatus = async () => {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [dailyCount, monthlyCount] = await Promise.all([
+        Task.countDocuments({ createdAt: { $gte: startOfDay } }),
+        Task.countDocuments({ createdAt: { $gte: startOfMonth } }),
+    ]);
+
+    const dailyRemaining = DAILY_TASK_LIMIT - dailyCount;
+    const monthlyRemaining = MONTHLY_TASK_LIMIT - monthlyCount;
+
+    let message = "";
+    let canCreate = true;
+    let severity = "info";
+
+    const formatRemainingMessage = (remaining, period) => {
+        const noun = remaining === 1 ? "task" : "tasks";
+        return `You have ${remaining} ${noun} create left ${period}.`;
+    };
+
+    if (monthlyRemaining <= 0) {
+        canCreate = false;
+        message = "You have reached the monthly task creation limit.";
+        severity = "error";
+    } else if (dailyRemaining <= 0) {
+        canCreate = false;
+        message = "You have reached the daily task creation limit.";
+        severity = "error";
+    } else if (monthlyRemaining <= 10) {
+        message = formatRemainingMessage(monthlyRemaining, "this month");
+        severity = "warning";
+    } else if (dailyRemaining <= 10) {
+        message = formatRemainingMessage(dailyRemaining, "today");
+        severity = "warning";
+    } else {
+        message = "You can create more tasks.";
+        severity = "info";
+    }
+
+    return {
+        dailyLimit: DAILY_TASK_LIMIT,
+        monthlyLimit: MONTHLY_TASK_LIMIT,
+        dailyCount,
+        monthlyCount,
+        dailyRemaining,
+        monthlyRemaining,
+        message,
+        canCreate,
+        severity,
+    };
+};
+
 // Lấy toàn bộ danh sách Task + Đếm số lượng trạng thái
 export const getAllTasks = async (req, res) => {
     const {filter ='today'} = req.query;
@@ -49,8 +106,9 @@ export const getAllTasks = async (req, res) => {
 
         const activeCount = result[0].activeCount[0]?.count || 0;
         const completeCount = result[0].completeCount[0]?.count || 0;
+        const creationLimits = await getCreationLimitStatus();
 
-        res.status(200).json({ tasks, activeCount, completeCount });
+        res.status(200).json({ tasks, activeCount, completeCount, creationLimits });
     } catch (error) {
         console.error("Error at getAllTasks:", error);
         res.status(500).json({ message: "Server error" });
@@ -64,9 +122,20 @@ export const createTask = async (req, res) => {
         if (!title || !title.trim()) {
             return res.status(400).json({ message: "Title is required" });
         }
+
+        const currentLimits = await getCreationLimitStatus();
+        if (!currentLimits.canCreate) {
+            return res.status(429).json({
+                message: currentLimits.message,
+                creationLimits: currentLimits,
+            });
+        }
+
         const task = new Task({ title });
         const newTask = await task.save();
-        res.status(201).json(newTask);
+        const creationLimits = await getCreationLimitStatus();
+
+        res.status(201).json({ task: newTask, creationLimits });
     } catch (error) {
         console.error("Error at createTask:", error);
         res.status(500).json({ message: "Server error" });

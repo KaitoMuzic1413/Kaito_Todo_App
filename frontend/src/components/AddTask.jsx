@@ -6,12 +6,19 @@ import { Plus, Loader2 } from "lucide-react"
 import api from '@/lib/axios'
 import { toast } from 'sonner'
 
-const AddTask = ({ handleNewTaskAdded }) => {
+const AddTask = ({ handleNewTaskAdded, limitStatus }) => {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 🎯 2. Tạo một cái ref để định danh ô nhập liệu Input
   const inputRef = useRef(null);
+  const lastToastMessageRef = useRef("");
+
+  const isBlocked = limitStatus?.canCreate === false;
+  const severity = limitStatus?.severity || "info";
+  const helperText = limitStatus?.message || "Bạn có thể tạo thêm task mới.";
+  const helperClassName = severity === "warning" || severity === "error"
+    ? "text-red-600"
+    : "text-slate-500";
 
   // 🎯 3. Lắng nghe sự kiện nhấn phím Enter trên toàn màn hình bằng useEffect
   useEffect(() => {
@@ -34,20 +41,35 @@ const AddTask = ({ handleNewTaskAdded }) => {
     };
   }, []);
 
+  useEffect(() => {
+    if (severity === "warning" && helperText && helperText !== lastToastMessageRef.current) {
+      toast.warning(helperText);
+      lastToastMessageRef.current = helperText;
+    }
+  }, [helperText, severity]);
+
   const addTask = async () => {
     if (!newTaskTitle.trim() || isSubmitting) return;
 
+    if (isBlocked) {
+      toast.error(limitStatus?.message || "Bạn đã đạt giới hạn tạo task.");
+      return;
+    }
+
     try {
       setIsSubmitting(true);
-      
-      await api.post("/tasks", { title: newTaskTitle });
-      toast.success(`Task "${newTaskTitle}" was added.`); 
-      
-      if (handleNewTaskAdded) handleNewTaskAdded(); 
-      setNewTaskTitle(""); 
+
+      const response = await api.post("/tasks", { title: newTaskTitle });
+      toast.success(response.data?.task?.title
+        ? `Task "${response.data.task.title}" was added.`
+        : `Task "${newTaskTitle}" was added.`);
+
+      if (handleNewTaskAdded) handleNewTaskAdded();
+      setNewTaskTitle("");
     } catch (error) {
+      const errorMessage = error.response?.data?.message || "Error adding new task.";
       console.error("Lỗi chi tiết từ Backend:", error.response?.data || error.message);
-      toast.error("Error adding new task.");
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -61,23 +83,25 @@ const AddTask = ({ handleNewTaskAdded }) => {
 
   return (
     <Card className="p-6 border-0 bg-gradient-card shadow-custom-lg">
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Input 
-          // 🎯 4. Gắn ref vào đây để React quản lý con trỏ chuột
-          ref={inputRef}
-          type="text" 
-          placeholder="Add a new task ..." 
-          className="h-12 text-base bg-slate-50 sm:flex-1 border-border/50 focus:border-primary/50 focus:ring-primary/20 rounded-full px-5" 
-          value={newTaskTitle}
-          onChange={(e) => setNewTaskTitle(e.target.value)}
-          onKeyDown={handleKeyDown}
-          disabled={isSubmitting}
-        />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="flex-1 flex flex-col gap-2">
+          <p className={`text-sm font-medium ${helperClassName}`}>{helperText}</p>
+          <Input 
+            ref={inputRef}
+            type="text" 
+            placeholder={isBlocked ? "You have reached the task creation limit" : "Add a new task ..."} 
+            className={`h-12 text-base bg-slate-50 border-border/50 focus:border-primary/50 focus:ring-primary/20 rounded-full px-5 ${isBlocked ? "border-red-300 focus:border-red-400" : ""}`} 
+            value={newTaskTitle}
+            onChange={(e) => setNewTaskTitle(e.target.value)}
+            onKeyDown={handleKeyDown}
+            disabled={isSubmitting || isBlocked}
+          />
+        </div>
         <Button 
           variant="default" 
           className="h-12 px-6 gap-2 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-medium border-0 shadow-md transition-all duration-200" 
           onClick={addTask} 
-          disabled={!newTaskTitle.trim() || isSubmitting}
+          disabled={!newTaskTitle.trim() || isSubmitting || isBlocked}
         >
           {isSubmitting ? (
             <>
