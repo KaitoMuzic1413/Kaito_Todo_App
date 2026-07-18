@@ -58,7 +58,6 @@ const getCreationLimitStatus = async () => {
     };
 };
 
-// Lấy toàn bộ danh sách Task + Đếm số lượng trạng thái
 export const getAllTasks = async (req, res) => {
     const {filter ='today'} = req.query;
     const now = new Date();
@@ -97,7 +96,6 @@ export const getAllTasks = async (req, res) => {
             },
         ]);
 
-        // FIX LỖI: Chuyển đổi hệ thống _id thô của MongoDB thành chuỗi String an toàn cho Frontend
         const rawTasks = result[0].tasks || [];
         const tasks = rawTasks.map(task => ({
             ...task,
@@ -142,7 +140,6 @@ export const createTask = async (req, res) => {
     }
 };
 
-// Cập nhật trạng thái / tiêu đề Task
 export const updateTask = async (req, res) => {
     try {
         const { id } = req.params;
@@ -169,7 +166,6 @@ export const updateTask = async (req, res) => {
     }
 };
 
-// Xóa Task
 export const deleteTask = async (req, res) => {
     try {
         const { id } = req.params;

@@ -19,7 +19,6 @@ const Footer = ({ completedTasksCount = 0, activeTasksCount = 0 }) => {
               )
             }
 
-            {/* SỬA LỖI TẠI ĐÂY: Thêm toán tử && vào trước block React Fragment */}
             {completedTasksCount === 0 && activeTasksCount > 0 && (
               <>
                 Let's do {activeTasksCount} {activeTasksCount === 1 ? 'task now !!!' : 'tasks now !!!'}

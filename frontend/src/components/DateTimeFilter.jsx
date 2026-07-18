@@ -12,7 +12,7 @@ import {
   PopoverContent,
   PopoverTrigger
 } from "@/components/ui/popover"
-import { options } from "@/lib/data" // Đảm bảo đường dẫn này vẫn chính xác
+import { options } from "@/lib/data"
 
 const TaskListPagination = ({ 
   handleNext, 
@@ -20,8 +20,8 @@ const TaskListPagination = ({
   handlePageChange, 
   page, 
   totalPages,
-  dateQuery,      // 👈 Nhận thêm prop từ component cha
-  setDateQuery    // 👈 Nhận thêm prop từ component cha
+  dateQuery,
+  setDateQuery
 }) => {
   const [inputPage, setInputPage] = useState("");
   const [openFilter, setOpenFilter] = useState(false);
@@ -31,7 +31,6 @@ const TaskListPagination = ({
   const buttonRefs = useRef({});
   const [highlightStyle, setHighlightStyle] = useState({ left: 0, width: 0, opacity: 0 });
 
-  // 🛠️ Thuật toán tạo danh sách số trang thông minh
   const getPaginationRangeFor = (currentPage, last) => {
     if (last <= 7) {
       return Array.from({ length: last }, (_, i) => i + 1);
@@ -85,14 +84,12 @@ const TaskListPagination = ({
     return padded;
   }, [paginationRange, maxSlotCount]);
 
-  // Lọc các option cho bộ lọc datetime
   const filteredOptions = useMemo(() => {
     return (options || []).filter((option) =>
       option.label.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm]);
 
-  // 🎯 Tính toán vị trí "viên pill" trượt
   const updateHighlight = useCallback(() => {
     const container = containerRef.current;
     const activeBtn = buttonRefs.current[page];
@@ -145,13 +142,10 @@ const TaskListPagination = ({
 
   return (
     <div className="flex flex-col items-start gap-4 flex-1 mt-4 w-full">
-
-      {/* 1. CỤM NÚT SỐ TRANG */}
       <div className="w-full flex justify-start">
         <Pagination className="mx-0 w-auto">
           <PaginationContent className="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-full backdrop-blur-sm border border-slate-200/40 relative">
-            
-            {/* Nút Prev */}
+
             <PaginationItem>
               <Button
                 variant="ghost"
@@ -165,7 +159,6 @@ const TaskListPagination = ({
               </Button>
             </PaginationItem>
 
-            {/* Vùng chứa các số trang */}
             <div ref={containerRef} className="flex items-center gap-1.5 relative">
               <div
                 className="absolute top-0 h-8 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 shadow-md pointer-events-none"
@@ -209,7 +202,6 @@ const TaskListPagination = ({
               })}
             </div>
 
-            {/* Nút Next */}
             <PaginationItem>
               <Button
                 variant="ghost"
@@ -227,7 +219,6 @@ const TaskListPagination = ({
         </Pagination>
       </div>
 
-      {/* 2. DÒNG DƯỚI: HÀNG NGANG GIỮA GO TO PAGE (BÊN TRÁI) VÀ DATE FILTER (BÊN PHẢI) */}
       <div className="w-full flex justify-between items-center select-none pl-1">
         
         {/* Bên trái: Go to page */}
@@ -244,7 +235,6 @@ const TaskListPagination = ({
           />
         </div>
 
-        {/* Bên phải: Bộ lọc DateTime được dời xuống đây */}
         <Popover open={openFilter} onOpenChange={setOpenFilter}>
           <PopoverTrigger asChild>
             <Button

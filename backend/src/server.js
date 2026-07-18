@@ -28,11 +28,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: false })); 
 
-// --- Routes ---
 app.use("/api/tasks", taskRoutes);
 app.use("/api/users", userRoutes);
 
-// Phục vụ Frontend
 if(process.env.NODE_ENV === 'production'){
     const frontendPath = path.join(__dirname, "..", "..", "frontend", "dist");
     app.use(express.static(frontendPath));
@@ -42,7 +40,6 @@ if(process.env.NODE_ENV === 'production'){
     })
 }
 
-// Kết nối Database và chạy Server
 connectDB().then(() => {
     app.listen(PORT, '0.0.0.0', () => {
         console.log(`Server is running on port ${PORT}`);

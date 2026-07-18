@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react' // 🎯 1. Import thêm useEffect và useRef
+import React, { useState, useEffect, useRef } from 'react'
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -9,50 +9,48 @@ import { toast } from 'sonner'
 const AddTask = ({ handleNewTaskAdded, limitStatus }) => {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [remainingTasks, setRemainingTasks] = useState(50);
 
   const inputRef = useRef(null);
-  const lastToastMessageRef = useRef("");
 
-  const isBlocked = limitStatus?.canCreate === false;
+  const isWarning = remainingTasks <= 5;
+  const isBlocked = remainingTasks <= 0 || limitStatus?.canCreate === false;
   const severity = limitStatus?.severity || "info";
-  const helperText = limitStatus?.message || "Bạn có thể tạo thêm task mới.";
-  const helperClassName = severity === "warning" || severity === "error"
-    ? "text-red-600"
+  const helperText = remainingTasks <= 0
+    ? "No tasks left."
+    : `You can create ${remainingTasks} task${remainingTasks === 1 ? "" : "s"} left.`;
+  const helperClassName = isWarning || severity === "warning" || severity === "error"
+    ? "text-red-600 font-semibold"
     : "text-slate-500";
 
-  // 🎯 3. Lắng nghe sự kiện nhấn phím Enter trên toàn màn hình bằng useEffect
   useEffect(() => {
     const handleGlobalKeyDown = (event) => {
       if (event.key === "Enter") {
-        // Kiểm tra nếu con trỏ chuột CHƯA nằm trong ô input thì mới nhảy vào (để tránh xung đột khi gõ)
         if (document.activeElement !== inputRef.current) {
-          event.preventDefault(); // Ngăn hành động mặc định của trình duyệt
-          inputRef.current?.focus(); // Tự động trỏ chuột vào ô nhập
+          event.preventDefault();
+          inputRef.current?.focus();
         }
       }
     };
 
-    // Đăng ký sự kiện
     window.addEventListener("keydown", handleGlobalKeyDown);
 
-    // Hủy đăng ký sự kiện khi rời trang để tránh rò rỉ bộ nhớ
     return () => {
       window.removeEventListener("keydown", handleGlobalKeyDown);
     };
   }, []);
 
   useEffect(() => {
-    if (severity === "warning" && helperText && helperText !== lastToastMessageRef.current) {
-      toast.warning(helperText);
-      lastToastMessageRef.current = helperText;
+    if (typeof limitStatus?.dailyRemaining === "number") {
+      setRemainingTasks(Math.max(0, limitStatus.dailyRemaining));
     }
-  }, [helperText, severity]);
+  }, [limitStatus?.dailyRemaining]);
 
   const addTask = async () => {
     if (!newTaskTitle.trim() || isSubmitting) return;
 
     if (isBlocked) {
-      toast.error(limitStatus?.message || "Bạn đã đạt giới hạn tạo task.");
+      toast.error(limitStatus?.message || "Bạn đã đạt giới hạn tạo task trong ngày.");
       return;
     }
 
@@ -64,6 +62,7 @@ const AddTask = ({ handleNewTaskAdded, limitStatus }) => {
         ? `Task "${response.data.task.title}" was added.`
         : `Task "${newTaskTitle}" was added.`);
 
+      setRemainingTasks((prev) => Math.max(0, prev - 1));
       if (handleNewTaskAdded) handleNewTaskAdded();
       setNewTaskTitle("");
     } catch (error) {
@@ -89,7 +88,7 @@ const AddTask = ({ handleNewTaskAdded, limitStatus }) => {
           <Input 
             ref={inputRef}
             type="text" 
-            placeholder={isBlocked ? "You have reached the task creation limit" : "Add a new task ..."} 
+            placeholder={isBlocked ? "No tasks can create left" : `You have ${remainingTasks} task${remainingTasks === 1 ? "" : "s"} left`} 
             className={`h-12 text-base bg-slate-50 border-border/50 focus:border-primary/50 focus:ring-primary/20 rounded-full px-5 ${isBlocked ? "border-red-300 focus:border-red-400" : ""}`} 
             value={newTaskTitle}
             onChange={(e) => setNewTaskTitle(e.target.value)}

@@ -39,8 +39,8 @@
     --success: 142 76% 36%;
     --success-foreground: 0 0% 98%;
 
-    --info: 226, 100%, 63%;
-    --destructive-foreground: 0 0% 98%;
+    --info: 226 100% 63%;
+    --info-foreground: 0 0% 98%;
 
     --border: 214 32% 91%; /* slate-200 */
     --input: 210 40% 96%;

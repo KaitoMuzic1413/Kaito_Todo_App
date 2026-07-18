@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react"; 
 import { toast } from "sonner"; 
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion"; // 🎯 NHẬP THÊM thư viện framer-motion
+import { motion } from "framer-motion";
 import Header from "../components/Header";
 import AddTask from "../components/AddTask";
 import StatsAndFilters from "../components/StatsAndFilters";
@@ -128,8 +128,6 @@ const HomePage = () => {
     root.style.colorScheme = activeTheme === 'light' ? 'light' : 'dark';
   }, [activeTheme]);
 
-  // 🎯 ĐỊNH NGHĨA HOẠT ẢNH CHO TRANG CHỦ
-// 🎯 HOẠT ẢNH CHO TRANG CHỦ: Khẽ chìm xuống nhẹ nhàng khi bấm Login
   const pageVariants = {
     initial: {
       opacity: 0,
@@ -142,13 +140,12 @@ const HomePage = () => {
     },
     exit: {
       opacity: 0,
-      scale: 0.95, // Khẽ thu nhỏ lại tạo khoảng trống cho trang Login phóng lên
-      transition: { duration: 0.6, ease: [0.4, 0, 0.2, 1] } // Chạy chậm, êm
+      scale: 0.95,
+      transition: { duration: 0.6, ease: [0.4, 0, 0.2, 1] }
     }
   };
 
   return (
-    // 🎯 THAY ĐỔI: Chuyển div thành motion.div và gắn các thuộc tính hoạt ảnh
     <motion.div 
       variants={pageVariants}
       initial="initial"
@@ -156,7 +153,6 @@ const HomePage = () => {
       exit="exit"
       className={palette.shell}
     >
-      {/* Background Gradient */}
       <div 
         className="absolute inset-0 z-0" 
         style={{
@@ -164,11 +160,9 @@ const HomePage = () => {
         }}
       />
 
-      {/* Main Content Containers */}
       <div className="w-full pt-8 mx-auto relative z-10 px-4"> 
         <div className="w-full max-w-2xl mx-auto p-6 space-y-6 relative">
 
-          {/* CỤM HEADER & NÚT LOGIN */}
           <div className="w-full relative">
             <div className="flex items-center justify-between gap-3 mb-3 md:mb-0">
               <div className="relative z-[9999]">
@@ -248,10 +242,8 @@ const HomePage = () => {
             <Header />
           </div>
 
-          {/* Add Task */}
           <AddTask handleNewTaskAdded={handleTaskChanged} limitStatus={creationLimits} />
 
-          {/* StatsAndFilters */}
           <StatsAndFilters 
             activeTasksCount={activeTasksCount} 
             completedTasksCount={completedTasksCount}
@@ -259,7 +251,6 @@ const HomePage = () => {
             setFilter={setFilter} 
           />
 
-          {/* VÙNG CHỨA TASKLIST CỐ ĐỊNH CHIỀU CAO */}
           <div className="w-full flex flex-col">
             <div className="min-h-[420px] flex flex-col justify-start">
               <div className="min-h-[320px] flex flex-col">
@@ -271,7 +262,6 @@ const HomePage = () => {
               </div>
             </div>
 
-            {/* Phân trang bám đáy khối 480px */}
             <div className="w-full pt-6 mt-4 border-t border-slate-100/50 min-h-[72px] flex items-center justify-center">
               <TaskListPagination 
                 handleNext={handleNext}
@@ -286,7 +276,6 @@ const HomePage = () => {
             </div>
           </div>
 
-          {/* Footer */}
           <div className="min-h-[72px] flex items-center justify-center">
             <Footer 
               activeTasksCount={activeTasksCount}

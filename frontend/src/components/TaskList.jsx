@@ -11,7 +11,6 @@ const TaskList = ({ filteredTasks, filter, handleTaskChanged }) => {
     <div className="space-y-3">
       {filteredTasks.map((task, index) => (
         <div 
-          // MẸO: Thêm `${filter}-` vào trước ID để ép React render lại hiệu ứng khi đổi tab
           key={`${filter}-${task._id}`} 
           className="transition-all duration-300 ease-in-out animate-in fade-in-50 slide-in-from-bottom-2"
           style={{ animationDelay: `${index * 30}ms` }}

@@ -18,7 +18,6 @@ import {
 import api from '@/lib/axios'
 import { toast } from 'sonner'
 
-// 1. Import các thành phần Context Menu từ Shadcn UI
 import {
   ContextMenu,
   ContextMenuContent,
@@ -97,7 +96,6 @@ const TaskCard = ({ task, handleTaskChanged }) => {
         }
     };
 
-    // 2. Hàm copy text nhanh của Task vào bộ nhớ tạm
     const handleCopyTitle = () => {
         navigator.clipboard.writeText(task.title || "");
         toast.success("Copied task title to clipboard!");
@@ -107,7 +105,6 @@ const TaskCard = ({ task, handleTaskChanged }) => {
 
     return (
         <ContextMenu>
-            {/* ContextMenuTrigger bọc ngoài Card. Vô hiệu hóa chuột phải khi đang gõ chữ sửa */}
             <ContextMenuTrigger disabled={isEditing}>
                 <Card 
                     className={cn(
@@ -116,7 +113,6 @@ const TaskCard = ({ task, handleTaskChanged }) => {
                     )} 
                 >
                     <div className='flex items-center gap-4'>
-                        {/* Nút check trạng thái tròn */}
                         <Button 
                             variant='ghost' 
                             size='icon' 
@@ -135,7 +131,6 @@ const TaskCard = ({ task, handleTaskChanged }) => {
                             )}
                         </Button>
 
-                        {/* Vùng hiển thị nội dung hoặc ô Input khi sửa */}
                         <div className="flex-1 min-w-0">
                             {isEditing ? (
                                 <Input 
@@ -159,7 +154,6 @@ const TaskCard = ({ task, handleTaskChanged }) => {
                                 </p>
                             )}
 
-                            {/* Hiển thị ngày tạo và ngày hoàn thành */}
                             <div className="flex items-center gap-2 mt-1">
                                 <Calendar className="size-3 text-muted-foreground"/>
                                 <span className="text-xs text-muted-foreground">
@@ -177,7 +171,6 @@ const TaskCard = ({ task, handleTaskChanged }) => {
                             </div>
                         </div>
 
-                        {/* Cụm nút hành động */}
                         <div className={cn(
                             "flex gap-1 items-center transition-all duration-300 ease-out",
                             isEditing 
@@ -235,14 +228,10 @@ const TaskCard = ({ task, handleTaskChanged }) => {
                 </Card>
             </ContextMenuTrigger>
 
-            {/* 3. Phần Menu hiển thị khi click chuột phải (Bố cục 2 cột dọc) */}
-            {/* 3. Phần Menu hiển thị khi click chuột phải (Bố cục 2 cột dọc) */}
             <ContextMenuContent 
-                // 👇 SỬA TẠI ĐÂY: Thêm border-2 và border-slate-300 để viền ngoài đậm lên
                 className="p-0 overflow-hidden min-w-[260px] flex flex-row bg-popover border-2 border-slate-300 shadow-xl" 
                 onContextMenu={(e) => e.preventDefault()}
             >
-                {/* CỘT TRÁI: Các tính năng hệ thống */}
                 <div className="flex-1 p-1 flex flex-col justify-center">
                     <ContextMenuGroup>
                         <ContextMenuItem onClick={handleCopyTitle} className="gap-2 cursor-pointer text-slate-600 text-xs font-medium">
@@ -269,11 +258,9 @@ const TaskCard = ({ task, handleTaskChanged }) => {
                     </ContextMenuGroup>
                 </div>
 
-                {/* CỘT PHẢI: Nút chuyển đổi trạng thái */}
                 <ContextMenuItem 
                     onClick={toggleTaskCompleteButton} 
                     className={cn(
-                        // 👇 SỬA TẠI ĐÂY: Sửa border-l thành border-l-2 và thêm border-slate-300 cho vách ngăn đậm lên
                         "w-24 self-stretch flex flex-col items-center justify-center gap-2 text-center border-l-2 border-slate-300 rounded-none cursor-pointer p-2 transition-all duration-200 select-none text-[11px] font-semibold",
                         isCompleted 
                             ? "bg-amber-50/60 text-amber-600 data-[highlighted]:bg-amber-100 data-[highlighted]:text-amber-700" 

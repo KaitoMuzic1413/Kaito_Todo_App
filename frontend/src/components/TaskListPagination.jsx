@@ -35,45 +35,47 @@ const TaskListPagination = ({
 
   const getPaginationRangeFor = (currentPage, last) => {
     const safePage = currentPage || 1;
-    if (last <= 7) {
+    if (last <= 9) {
       return Array.from({ length: last }, (_, i) => i + 1);
     }
 
-    const rangeWithDots = [];
-    const leftRange = [1, 2, 3];
-    const rightRange = [last - 2, last - 1, last];
-
-    const siblingLeft = Math.max(safePage - 1, 1);
-    const siblingRight = Math.min(safePage + 1, last);
-
-    const showLeftDots = siblingLeft > 4;
-    const showRightDots = siblingRight < last - 3;
-
-    if (!showLeftDots && showRightDots) {
-      const extraLeft = [];
-      for (let i = 4; i <= Math.max(5, siblingRight); i++) {
-        extraLeft.push(i);
+    const range = (start, end) => {
+      const pages = [];
+      for (let i = start; i <= end; i += 1) {
+        pages.push(i);
       }
-      rangeWithDots.push(...leftRange, ...extraLeft, '...', ...rightRange);
-    } else if (showLeftDots && !showRightDots) {
-      const extraRight = [];
-      for (let i = Math.min(last - 4, siblingLeft); i <= last - 3; i++) {
-        extraRight.push(i);
-      }
-      rangeWithDots.push(...leftRange, '...', ...extraRight, ...rightRange);
-    } else if (showLeftDots && showRightDots) {
-      rangeWithDots.push(
-        ...leftRange,
+      return pages;
+    };
+
+    if (safePage <= 6) {
+      return [
+        ...range(1, 6),
         '...',
-        siblingLeft,
-        safePage,
-        siblingRight,
-        '...',
-        ...rightRange
-      );
+        last - 1,
+        last,
+      ];
     }
 
-    return Array.from(new Set(rangeWithDots));
+    if (safePage >= last - 5) {
+      return [
+        1,
+        2,
+        '...',
+        ...range(last - 5, last),
+      ];
+    }
+
+    return [
+      1,
+      2,
+      '...',
+      safePage - 1,
+      safePage,
+      safePage + 1,
+      '...',
+      last - 1,
+      last,
+    ];
   };
 
   const currentSafePage = page || 1;

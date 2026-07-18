@@ -1,13 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
-/* ===== RESET CHỈ ÁP DỤNG TRONG TRANG LOGIN ===== */
 .login-wrapper *, .login-wrapper *::before, .login-wrapper *::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-family: 'Montserrat', sans-serif;
 }
-/* ===== ACCESSIBILITY ===== */
+
 .login-wrapper .sr-only {
     position: absolute;
     width: 1px;
@@ -20,7 +19,6 @@
     border: 0;
 }
 
-/* ===== ĐỔI BODY THÀNH ĐỊNH DẠNG WRAPPER ĐỂ KHÔNG ĐÈ LÊN HOMEPAGE ===== */
 .style-login-body {
     background-color: #c9d6ff;
     background-image: linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), 
@@ -38,7 +36,6 @@
     z-index: 10;
 }
 
-/* ===== ĐỔI .CONTAINER THÀNH .LOGIN-CONTAINER-CUSTOM ===== */
 .login-container-custom {
     position: relative;
     overflow: hidden;
@@ -96,7 +93,6 @@
     z-index: -1;
 }
 
-/* ===== TYPOGRAPHY ===== */
 .login-container-custom p {
     font-size: 14px;
     line-height: 20px;
@@ -120,7 +116,6 @@
     color: #fff;
 }
 
-/* ===== BUTTON ===== */
 .login-container-custom button {
     cursor: pointer;
 }
@@ -164,7 +159,6 @@
     background-color: rgba(255,255,255,0.1);
 }
 
-/* ===== FORM ===== */
 .login-container-custom form {
     background: transparent;
     display: flex;
@@ -181,7 +175,6 @@
     font-size: 24px;
 }
 
-/* ===== FIELD GROUP ===== */
 .field-group {
     width: 100%;
     margin: 6px 0;
@@ -209,7 +202,6 @@
     color: rgba(255,255,255,0.7);
 }
 
-/* ===== PASSWORD WRAPPER ===== */
 .password-wrapper {
     position: relative;
     width: 100%;
@@ -219,12 +211,10 @@
     padding-right: 42px;
 }
 
-/* ===== TEXT COLORS ===== */
 .login-container-custom h1, .login-container-custom p, .login-container-custom span, .login-container-custom a {
     color: white;
 }
 
-/* ===== MOBILE SWITCH LINKS ===== */
 .mobile-switch {
     display: none;
     font-size: 13px;
@@ -238,7 +228,6 @@
     font-weight: 600;
 }
 
-/* ===== FORM CONTAINER ANIMATION ===== */
 .form-container {
     position: absolute;
     top: 0;
@@ -289,7 +278,6 @@
     }
 }
 
-/* ===== SOCIAL ICONS ===== */
 .social-icons {
     margin: 10px 0;
 }
@@ -311,7 +299,6 @@
     border-color: rgba(255,255,255,0.9);
 }
 
-/* ===== TOGGLE CONTAINER ===== */
 .toggle-container {
     position: absolute;
     top: 0;
@@ -376,14 +363,12 @@
     transform: translateX(200%);
 }
 
-/* ===== RESPONSIVE — TABLET ===== */
 @media (max-width: 768px) {
     .login-container-custom {
         border-radius: 24px;
     }
 }
 
-/* ===== RESPONSIVE — MOBILE ===== */
 @media (max-width: 600px) {
     .login-container-custom {
         border-radius: 20px;
@@ -442,7 +427,6 @@
     }
 }
 
-/* ===== PREMIUM BOX XỊN XÒ ===== */
 .premium-box {
     position: relative;
     width: 220px;

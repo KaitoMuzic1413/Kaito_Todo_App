@@ -19,7 +19,6 @@ const TaskEmtyState = ({ filter }) => {
                 <p className="text-sm text-muted-foreground">
                 {
                     filter === 'all' ? 'All tasks will appear here.' : 
-                    // SỬA LỖI: Đổi $(...) thành ${...}
                     `Change the filter to see tasks based on their status ${filter === "active" ? "completed." : "active."}`
                 }
                 </p>
